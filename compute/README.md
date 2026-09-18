@@ -70,6 +70,12 @@ server remains headless.
 
 ## Telegram control
 
+The HexStrike agent can also run directly on the headless server without
+Telegram or the queue. From an SSH or VS Code Remote SSH terminal, use
+`hexstrike-agent --health` and then `hexstrike-agent "TASK"`; running it with no
+task prompts interactively. Installation and configuration are documented in
+[the HexStrike runbook](HEXSTRIKE.md).
+
 Use the existing bot's private chat from the verified owner account:
 
 ```text
@@ -77,6 +83,8 @@ Use the existing bot's private chat from the verified owner account:
 /cluster run server python3 --version
 /cluster ask myproject Fix the failing tests
 /cluster job latest
+/hexstrike Use server_health and report the API status
+/hexstrike job latest
 ```
 
 Phone submissions appear in **All activity** in Cluster Desk. Short commands can
@@ -86,8 +94,17 @@ the installed network arrangement rather than assuming the tether is provided
 by the phone used for Telegram.
 
 See [Telegram commands and maintenance](TELEGRAM.md) for all commands and recovery
-instructions. The plugin uses the existing bot and verified-owner policy; it
-does not change ordinary assistant chat or open a public cluster endpoint.
+instructions, and [the HexStrike deployment runbook](HEXSTRIKE.md) for the Kali
+container, subscription-backed agent, verification, and rollback procedure. The
+plugin uses the existing bot and verified-owner policy; it does not change
+ordinary assistant chat or open a public cluster endpoint.
+
+`/hexstrike TASK` sends an owner-requested security task to the server worker.
+The dedicated agent reaches the HexStrike MCP API only through host loopback;
+the unauthenticated API and security tools run inside an unprivileged Kali LXD
+container. Use `/hexstrike status`, `/hexstrike health`, `/hexstrike job latest`,
+and `/hexstrike cancel JOB_ID` to manage those jobs. The command uses the existing
+bot and queue and does not change ordinary chat.
 
 ## Using the queue
 

@@ -172,7 +172,7 @@ class NativePluginTests(unittest.TestCase):
         plugin = Path(__file__).with_name("telegram-plugin") / "index.mjs"
         script = r'''
 import assert from 'node:assert/strict';
-const { default: plugin, createHandler, currentOwner } = await import(process.argv[1]);
+const { default: plugin, createHandler, createHexstrikeHandler, currentOwner } = await import(process.argv[1]);
 // Synthetic fixture IDs only; no installed owner configuration is read.
 const owner = '123456789';
 const config = { commands: { ownerAllowFrom: ['telegram:' + owner] } };
@@ -203,12 +203,18 @@ assert.equal(failed.isError, true);
 assert(!failed.text.includes('private error detail'));
 const invalid = await handler({...ctx, args:'bad\0input'.replace('\\0', '\0')});
 assert.equal(invalid.continueAgent, false);
-let definition;
-plugin.register({config, pluginConfig:{ownerId:owner}, registerCommand: value => {definition = value;}});
-assert.equal(definition.name, 'cluster');
-assert.equal(definition.requireAuth, true);
-assert.deepEqual(definition.requiredScopes, ['operator.admin']);
-assert.deepEqual(definition.channels, ['telegram']);
+let definitions = {};
+plugin.register({config, pluginConfig:{ownerId:owner}, registerCommand: value => {definitions[value.name] = value;}});
+assert.deepEqual(Object.keys(definitions).sort(), ['cluster', 'hexstrike']);
+for (const definition of Object.values(definitions)) {
+  assert.equal(definition.requireAuth, true);
+  assert.deepEqual(definition.requiredScopes, ['operator.admin']);
+  assert.deepEqual(definition.channels, ['telegram']);
+}
+let hexCalls = [];
+const hexHandler = createHexstrikeHandler(owner, async args => { hexCalls.push(args); return {text:'hex queued'}; });
+assert.equal((await hexHandler({...ctx, args:'health'})).text, 'hex queued');
+assert.deepEqual(hexCalls, ['health']);
 assert.throws(() => plugin.register({config, pluginConfig:{ownerId:'987654321'}, registerCommand(){}}));
 console.log('owner authorization, private-DM scope, registration, and no-fallback checks passed');
 '''

@@ -1,10 +1,13 @@
 {
   "id": "compute-cluster-control",
   "name": "Compute Cluster Control",
-  "description": "Owner-only Telegram commands for the existing private compute queue.",
-  "version": "1.0.0",
+  "description": "Owner-only Telegram commands for the private compute queue and HexStrike agent.",
+  "version": "1.1.0",
   "activation": { "onStartup": true },
-  "commandAliases": [{ "name": "cluster", "kind": "runtime-slash" }],
+  "commandAliases": [
+    { "name": "cluster", "kind": "runtime-slash" },
+    { "name": "hexstrike", "kind": "runtime-slash" }
+  ],
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
