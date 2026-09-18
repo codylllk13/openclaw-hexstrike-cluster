@@ -1,0 +1,20 @@
+{
+  "id": "compute-cluster-control",
+  "name": "Compute Cluster Control",
+  "description": "Owner-only Telegram commands for the existing private compute queue.",
+  "version": "1.0.0",
+  "activation": { "onStartup": true },
+  "commandAliases": [{ "name": "cluster", "kind": "runtime-slash" }],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["ownerId"],
+    "properties": {
+      "ownerId": {
+        "type": "string",
+        "pattern": "^[1-9][0-9]{0,19}$",
+        "description": "Private verified owner ID, extracted from the current commands.ownerAllowFrom Telegram entry."
+      }
+    }
+  }
+}

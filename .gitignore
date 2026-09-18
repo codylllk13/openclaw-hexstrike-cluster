@@ -1,0 +1,21 @@
+.build/
+.codex-finalizer/
+qa/
+node_modules
+*.validation.json
+*.log
+.env
+.env.*
+!.env.example
+
+# Private state and generated Git-agent files
+.env.*
+*.sqlite*
+*.pem
+*.key
+id_ed25519*
+known_hosts*
+__pycache__/
+**/.managed-snapshot.collect.lock
+**/.managed-snapshot.stage-*/
+**/.projects-stage-*/
