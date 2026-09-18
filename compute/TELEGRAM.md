@@ -18,6 +18,24 @@ them.
 | `/cluster cancel JOB_ID` | Cancel queued work or stop a running job. |
 | `/cluster retry JOB_ID` | Explicitly create a new attempt after a terminal result. |
 
+The same private chat also exposes a dedicated HexStrike agent:
+
+| Send | Result |
+| --- | --- |
+| `/hexstrike TASK` | Queue an owner-requested security task on the isolated Kali agent. |
+| `/hexstrike health` | Check the loopback-only HexStrike API. |
+| `/hexstrike status` | Show the server worker and recent HexStrike jobs. |
+| `/hexstrike job latest` | Read the latest HexStrike job and result. |
+| `/hexstrike job JOB_ID` | Read one HexStrike job. |
+| `/hexstrike cancel JOB_ID` | Cancel a queued or running HexStrike job. |
+
+The agent can invoke the Kali command set through HexStrike's MCP tools. The
+HexStrike API is not exposed to the LAN: it runs in an unprivileged LXD container
+and reaches the host only through `127.0.0.1`. Hardware-dependent wireless, GPU,
+Bluetooth and SDR tools still require compatible hardware attached to the server.
+See [the dedicated HexStrike runbook](HEXSTRIKE.md) for reproducible installation,
+subscription authentication, verification, recovery, and removal.
+
 Replace `myproject` with a name from `/cluster projects`. `NODE` can be `server`,
 `workstation`, or `any`. Job IDs accept an unambiguous eight-character prefix;
 use the full ID if the prefix is ambiguous or no longer in recent history.
@@ -81,8 +99,8 @@ otherwise requires a gateway restart; use the existing user service rather than
 starting a second gateway. No assistant model, authentication, tool permissions,
 Telegram pairing, group policy, or router settings need to change.
 
-The manifest declares `commandAliases` with kind `runtime-slash` and startup
-activation. The installed manifest contract does not require a
+The manifest declares `/cluster` and `/hexstrike` command aliases with kind
+`runtime-slash` and startup activation. The installed manifest contract does not require a
 `contracts.commands` entry. The registered command requests `operator.admin`
 scope so OpenClaw requires owner authority on chat surfaces and exposes the
 owner decision to the handler.
@@ -113,9 +131,9 @@ openclaw plugins disable compute-cluster-control
 
 The local test suite covers helper parsing, exact node selection, source
 selection, specialist dependencies, partial submission, response bounds,
-explicit retry, and a mocked native handler's owner/private-chat gate. Fifteen
-tests passed, including the JavaScript handler test with Node enabled. These
+explicit retry, private HexStrike task-file handoff, job ownership filters, and a
+mocked native handler's owner/private-chat gate. These
 tests do not prove live Telegram delivery or real account authorization. Finish
 deployment verification by sending `/cluster status` and an innocuous command
-such as `/cluster run server python3 --version` from the verified owner's phone,
-then checking the same job in the desktop app.
+such as `/cluster run server python3 --version`, then `/hexstrike health`, from the
+verified owner's phone. Check the cluster job in the desktop app.

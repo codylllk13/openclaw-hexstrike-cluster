@@ -3,6 +3,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 const HELPER = join(homedir(), ".local/share/compute-cluster/app/telegram_control.py");
+const HEXSTRIKE_HELPER = join(homedir(), ".local/share/compute-cluster/app/hexstrike_control.py");
 const DENIED = "Cluster control is available only to the verified owner in this bot's private chat.";
 
 export function currentOwner(config) {
@@ -19,21 +20,21 @@ function bounded(text) {
   return output;
 }
 
-export function invokeHelper(args) {
+function invokeProgram(helper, label, args) {
   return new Promise((resolve, reject) => {
-    const child = execFile("/usr/bin/python3", [HELPER], {
+    const child = execFile("/usr/bin/python3", [helper], {
       timeout: 10000,
       maxBuffer: 64 * 1024,
       encoding: "utf8",
       windowsHide: true,
     }, (error, stdout) => {
-      if (error) return reject(new Error("Cluster helper did not finish"));
+      if (error) return reject(new Error(`${label} helper did not finish`));
       try {
         const result = JSON.parse(stdout);
         if (!result || typeof result.text !== "string") throw new Error("Invalid helper response");
         resolve({ text: bounded(result.text), ...(result.isError === true ? { isError: true } : {}) });
       } catch {
-        reject(new Error("Invalid cluster helper response"));
+        reject(new Error(`Invalid ${label} helper response`));
       }
     });
     // Neither command text nor requester identifiers enter an OS command line.
@@ -42,7 +43,15 @@ export function invokeHelper(args) {
   });
 }
 
-export function createHandler(ownerId, invoke = invokeHelper) {
+export function invokeHelper(args) {
+  return invokeProgram(HELPER, "cluster", args);
+}
+
+export function invokeHexstrikeHelper(args) {
+  return invokeProgram(HEXSTRIKE_HELPER, "HexStrike", args);
+}
+
+function createScopedHandler(ownerId, invoke, unavailable) {
   return async (ctx) => {
     const owner = typeof ownerId === "string" && /^[1-9][0-9]{0,19}$/.test(ownerId) ? ownerId : null;
     if (!owner || currentOwner(ctx.config) !== owner || ctx.channel !== "telegram" ||
@@ -60,12 +69,28 @@ export function createHandler(ownerId, invoke = invokeHelper) {
       return { text: bounded(result.text), ...(result.isError === true ? { isError: true } : {}), continueAgent: false };
     } catch {
       return {
-        text: "Cluster is unavailable or the request did not finish. A job may already be queued; check /cluster status before repeating it.",
+        text: unavailable,
         isError: true,
         continueAgent: false,
       };
     }
   };
+}
+
+export function createHandler(ownerId, invoke = invokeHelper) {
+  return createScopedHandler(
+    ownerId,
+    invoke,
+    "Cluster is unavailable or the request did not finish. A job may already be queued; check /cluster status before repeating it.",
+  );
+}
+
+export function createHexstrikeHandler(ownerId, invoke = invokeHexstrikeHelper) {
+  return createScopedHandler(
+    ownerId,
+    invoke,
+    "HexStrike is unavailable or the request did not finish. A job may already be queued; check /hexstrike status before repeating it.",
+  );
 }
 
 export default {
@@ -86,6 +111,15 @@ export default {
       // owner authority for chat callers without gateway operator scopes.
       requiredScopes: ["operator.admin"],
       handler: createHandler(ownerId),
+    });
+    api.registerCommand({
+      name: "hexstrike",
+      description: "Run your private HexStrike security agent",
+      channels: ["telegram"],
+      acceptsArgs: true,
+      requireAuth: true,
+      requiredScopes: ["operator.admin"],
+      handler: createHexstrikeHandler(ownerId),
     });
   },
 };

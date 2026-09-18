@@ -13,6 +13,26 @@ control service. The existing Telegram bot accepts owner-only cluster commands.
 A command sent by the owner from Telegram completed on the server and appeared
 in the desktop's All activity view.
 
+The existing owner-only Telegram plugin now also registers `/hexstrike`. Its
+helper hands task text to the queue in a private `0600` file, removes that file
+when the worker consumes it, and never places task text in a process argument.
+The server worker successfully ran a dedicated ephemeral Codex turn, called the
+HexStrike MCP `server_health` tool, and returned healthy status for version 6.0.0.
+The main OpenClaw model, ordinary chat tool restrictions, pairing and channel
+policy remain unchanged.
+
+HexStrike 6.0.0 runs inside an unprivileged Kali LXD container. The API binds to
+container loopback and is forwarded only to host `127.0.0.1:8888`; no LAN or
+public listener was added. OpenClaw's MCP doctor and health probes passed. The
+container is limited to four CPUs and 8 GiB RAM and starts automatically.
+Kali's `kali-linux-everything` 2026.3.9 metapackage is installed with a clean
+`dpkg --audit` and `apt-get check`. Representative checks found Nmap, Metasploit,
+SQLMap, Aircrack-ng, Burp Suite, Ghidra, Hashcat, John, Wireshark, Responder,
+Hydra, Nikto, Nuclei, ZAP, Binwalk, Foremost, Radare2 and GDB. HexStrike detects
+81 of its 127 named integrations, including all essential, network and wireless
+tools; the full Kali metapackage remains available through HexStrike's generic
+command tool when its detector expects a different executable name.
+
 ## GitHub history access
 
 - GitHub CLI is authenticated independently on each node. The server uses the
@@ -127,5 +147,6 @@ Landlock compatibility was investigated but is not enabled.
 Reboot recovery, a prolonged real network outage, deliberate subscription
 exhaustion, GPU workloads, multi-node shared memory and large dataset transfer
 have not been live-tested. No OS reinstall, partition resizing, router changes,
-unsolicited external messaging or GitHub publication were performed. Telegram
-replies to the owner's explicit cluster commands were exercised as described above.
+or unsolicited external messaging were performed. At the time of these live
+checks the changes had not yet been published. Telegram replies to the owner's
+explicit cluster commands were exercised as described above.

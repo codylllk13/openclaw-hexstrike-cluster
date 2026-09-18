@@ -1,6 +1,6 @@
 {
   "name": "@local/compute-cluster-control",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "private": true,
   "peerDependencies": { "openclaw": "2026.9.4" },
